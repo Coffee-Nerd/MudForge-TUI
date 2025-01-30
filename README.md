@@ -86,4 +86,4 @@ This project is licensed under the MIT License.
 Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ## Contact
-For support or suggestions, contact the developer at `your-email@example.com` or open an issue on GitHub.
+For support or suggestions, contact the developer at `rpgplayers.inc@gmail.com` or open an issue on GitHub.
