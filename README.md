@@ -2,6 +2,8 @@
 
 A terminal-based MUD (Multi-User Dungeon) client built in Rust, featuring ANSI color support, Telnet protocol handling, and a text-based UI using `ratatui`.
 
+***THIS PROJECT IS NOT YET IN A WORKING STATE, AS WORK HAS JUST BEGUN.***
+
 ## Features
 - Connects to a MUD server via Telnet
 - Displays MUD output with ANSI color handling
