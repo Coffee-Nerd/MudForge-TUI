@@ -12,7 +12,7 @@ mod telnet_client;
 mod ansi_color;
 mod gmcp_store;
 
-use crate::telnet_client::{TelnetClient, TelnetMessage};
+use crate::telnet_client::{TelnetClient, TelnetMessage, GroupInfo};
 use crate::gmcp_store::GMCPStore;
 use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode};
 use crossterm::execute;
@@ -28,7 +28,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
 use simplelog::{Config, WriteLogger};
 
-/// Structures for gauge data
+/// Holds personal gauge data
 #[derive(Clone, Debug)]
 pub struct Vitals {
     pub hp: i32,
@@ -43,7 +43,6 @@ pub struct MaxStats {
     pub maxmove: i32,
 }
 
-/// AppState now includes the gauge data.
 struct AppState {
     mud_output: VecDeque<Vec<Span<'static>>>,
     chat_output: VecDeque<Vec<Span<'static>>>,
@@ -54,9 +53,11 @@ struct AppState {
     history_index: Option<usize>,
     common_commands: Vec<String>,
 
-    // GMCP gauge data:
+    // Personal GMCP info:
     gmcp_vitals: Option<Vitals>,
     gmcp_maxstats: Option<MaxStats>,
+    gmcp_enemy: Option<i32>,           // Enemy gauge from char.status (if needed)
+    group_info: Option<GroupInfo>,     // group GMCP info (which includes enemy info)
 }
 
 impl AppState {
@@ -78,6 +79,8 @@ impl AppState {
             ],
             gmcp_vitals: None,
             gmcp_maxstats: None,
+            gmcp_enemy: None,
+            group_info: None,
         }
     }
 
