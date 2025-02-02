@@ -244,6 +244,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     );
                     st.add_mud_output(vec![line]);
                 }
+                TelnetMessage::CharStatus(level, tnl, enemypct) => {
+                    let line = Span::styled(
+                        format!("GMCP: Char.Status => level {}, tnl {}, enemypct {}", level, tnl, enemypct),
+                        Style::default().fg(Color::Cyan),
+                    );
+                    st.add_mud_output(vec![line]);
+                    st.gmcp_enemy = Some(enemypct);
+                }
+                TelnetMessage::GroupInfo(group) => {
+                    let line = Span::styled(
+                        format!("GMCP: Group => groupname: {}", group.groupname),
+                        Style::default().fg(Color::Blue),
+                    );
+                    st.add_mud_output(vec![line]);
+                    st.group_info = Some(group);
+                }
             }
         }
     });
