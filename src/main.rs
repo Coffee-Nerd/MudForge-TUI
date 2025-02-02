@@ -222,24 +222,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     st.add_mud_output(vec![line]);
                     st.gmcp_vitals = Some(Vitals { hp, mana, movement });
                 }
+                TelnetMessage::CharMaxStats(maxhp, maxmana, maxmove) => {
                     let line = Span::styled(
-                        format!(
-                            "GMCP: Char.Vitals => HP {}/{}, Mana {}/{}, Moves {}/{}",
-                            hp, maxhp, mana, maxmana, moves, maxmoves
-                        ),
+                        format!("GMCP: Char.MaxStats => maxHP: {}, maxMana: {}, maxMove: {}", maxhp, maxmana, maxmove),
                         Style::default().fg(Color::Cyan),
                     );
                     st.add_mud_output(vec![line]);
-                    st.gmcp_vitals = Some(Vitals {
-                        hp,
-                        mana,
-                        movement: moves,
-                    });
-                    st.gmcp_maxstats = Some(MaxStats {
-                        maxhp,
-                        maxmana,
-                        maxmove: maxmoves,
-                    });
+                    st.gmcp_maxstats = Some(MaxStats { maxhp, maxmana, maxmove });
                 }
                 TelnetMessage::CharLogin(name) => {
                     let line = Span::styled(
