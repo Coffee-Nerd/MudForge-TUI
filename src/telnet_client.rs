@@ -145,9 +145,12 @@ pub enum TelnetMessage {
     MUDOutput(Vec<Span<'static>>),
     ChatMessage(Vec<Span<'static>>),
     Disconnect,
-    CharLogin(String),                   // (name)
-    CharVitals(i32, i32, i32, i32, i32, i32), // (hp, maxhp, mana, maxmana, moves, maxmoves)
-    RoomInfo(String, String),            // (room name, zone)
+    CharLogin(String),
+    CharVitals(i32, i32, i32), // CharVitals carries (hp, mana, movement)
+    CharMaxStats(i32, i32, i32),    // CharMaxStats carries (maxhp, maxmana, maxmove)
+    RoomInfo(String, String),
+    CharStatus(i32, i64, i32),
+    GroupInfo(GroupInfo),
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
