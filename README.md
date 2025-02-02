@@ -1,6 +1,8 @@
 # MUD Telnet TUI Client
 
 A terminal-based MUD (Multi-User Dungeon) client built in Rust. This project features asynchronous Telnet networking, advanced ANSI color support (for both traditional ANSI escapes and inline GMCP markers with xterm colors), GMCP handling for personal and group information (including gauges for HP, mana, movement, and enemy status), and a text-based UI built with `ratatui`.
+![WindowsTerminal_LxUce3WKAe](https://github.com/user-attachments/assets/34769ce8-b4d7-4cb3-80f4-a48348e1b917)
+
 ![image](https://github.com/user-attachments/assets/22c9717b-ceed-4574-a81f-c18314993b85)
 
 
