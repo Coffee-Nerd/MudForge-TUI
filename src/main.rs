@@ -286,7 +286,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap();
 
             if let Some(e) = ev {
-                debug!("Got an event from crossterm: {:?}", e);
+                // debug("Got an event from crossterm: {:?}", e);
                 if input_tx.send(e).await.is_err() {
                     break;
                 }
@@ -366,7 +366,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Renders the UI.
+/// Renders the gauges on one horizontal line.
+/// The personal gauges (HP, MN, MV) are built from char.vitals and char.maxstats.
+/// If group info is available and there is at least one enemy, an enemy gauge is appended.
 fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
     let outer = f.size();
     let chunks = Layout::default()
@@ -375,6 +377,7 @@ fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
         .constraints([Constraint::Ratio(3, 4), Constraint::Ratio(1, 4)].as_ref())
         .split(outer);
 
+    // The left pane is divided into output, gauge, and input areas.
     let left_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -429,7 +432,7 @@ fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
         .scroll((scroll_top_chat, 0));
     f.render_widget(chat_par, chat_rect);
 
-    let mut gauge_lines = Vec::new();
+    // Build a single horizontal line for gauges.
     if let (Some(vitals), Some(maxstats)) = (&st.gmcp_vitals, &st.gmcp_maxstats) {
         gauge_lines.push(Line::from(render_gauge("HP", vitals.hp, maxstats.maxhp)));
         gauge_lines.push(Line::from(render_gauge("MN", vitals.mana, maxstats.maxmana)));
