@@ -34,14 +34,25 @@ pub struct CharLogin {
     pub name: String,
 }
 
+// char.vitals gives only current values.
 #[derive(Debug, Deserialize)]
 pub struct CharVitals {
     pub hp: i32,
-    pub maxhp: i32,
     pub mana: i32,
+    pub movement: i32,
+}
+
+// char.maxstats gives maximum values.
+#[derive(Debug, Deserialize)]
+pub struct CharMaxStats {
+    pub maxhp: i32,
     pub maxmana: i32,
-    pub moves: i32,
-    pub maxmoves: i32,
+    pub maxmove: i32,
+    pub maxstr: i32,
+    pub maxint: i32,
+    pub maxwis: i32,
+    pub maxdex: i32,
+    pub maxcon: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -56,6 +67,74 @@ pub struct CommChannel {
     pub chan: String,
     pub msg: String,
     pub player: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CharStatus {
+    pub level: i32,
+    pub tnl: i64,
+    pub hunger: i32,
+    pub thirst: i32,
+    pub align: i32,
+    pub state: String,
+    pub enemy: String,
+    pub enemypct: i32,
+}
+#[derive(Debug, Clone, Deserialize)]
+pub struct GroupInfo {
+    pub groupname: String,
+    pub leader: String,
+    pub created: String,
+    pub status: String,
+    pub count: i32,
+    pub kills: i32,
+    pub exp: i64,
+    pub members: Vec<GroupMember>,
+    pub enemies: Vec<GroupEnemy>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GroupMember {
+    pub name: String,
+    pub info: GroupMemberInfo,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GroupMemberInfo {
+    pub hp: i32,
+    pub mhp: i32,
+    pub mn: i32,
+    pub mmn: i32,
+    pub mv: i32,
+    pub mmv: i32,
+    pub align: i32,
+    pub tnl: i64,
+    pub qt: i32,
+    pub qs: i32,
+    pub lvl: i32,
+    pub here: i32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GroupEnemy {
+    pub name: String,
+    pub info: GroupEnemyInfo,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GroupEnemyInfo {
+    pub hp: i32,
+    pub mhp: i32,
+    pub mn: i32,
+    pub mmn: i32,
+    pub mv: i32,
+    pub mmv: i32,
+    pub align: i32,
+    pub tnl: i64,
+    pub qt: i32,
+    pub qs: i32,
+    pub lvl: i32,
+    pub here: i32,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
