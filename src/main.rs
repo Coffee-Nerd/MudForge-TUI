@@ -465,17 +465,126 @@ fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
     }
 }
 
-/// Renders a gauge bar as a string.
-fn render_gauge(label: &str, current: i32, max: i32) -> String {
-    let bar_length = 20;
+/// Converts a marker like "$x196" or "$G" into a Color.
+fn convert_color_marker(marker: &str) -> Color {
+    if marker.starts_with("$x") {
+        let num_str = &marker[2..];
+        if let Ok(num) = num_str.parse::<u8>() {
+            let key = format!("38;5;{}", num);
+            if let Some(color) = ansi_color::COLOR_MAP.get(key.as_str()) {
+                return *color;
+            }
+        }
+        Color::White
+    } else if marker == "$G" {
+        Color::Green
+    } else if marker == "$R" {
+        Color::Red
+    } else if marker == "$0" {
+        Color::White
+    } else {
+        Color::White
+    }
+}
+
+/// Renders the HP gauge using the defined color progression.
+fn render_hp_gauge(current: i32, max: i32) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let label_color = convert_color_marker("$x048");
+    spans.push(Span::styled("HP: ", Style::default().fg(label_color)));
+    let bracket_color = convert_color_marker("$x238");
+    spans.push(Span::styled("[", Style::default().fg(bracket_color)));
+
+    let fill_codes = ["$x196", "$x202", "$x208", "$x214", "$x220", "$x226", "$x190", "$x154", "$x010"];
+    let total_segments = fill_codes.len();
     let percentage = if max > 0 { current as f64 / max as f64 } else { 0.0 };
-    let filled_length = (percentage * bar_length as f64).round() as usize;
-    format!(
-        "{}: [{}{}] {}/{}",
-        label,
-        "=".repeat(filled_length),
-        " ".repeat(bar_length - filled_length),
-        current,
-        max
-    )
+    let filled_count = (percentage * total_segments as f64).floor() as usize;
+
+    for i in 0..total_segments {
+        if i < filled_count {
+            let seg_text = if i == total_segments - 1 { "**" } else { "*" };
+            let seg_color = convert_color_marker(fill_codes[i]);
+            spans.push(Span::styled(seg_text, Style::default().fg(seg_color)));
+        } else {
+            let seg_text = if i == total_segments - 1 { "  " } else { " " };
+            let empty_color = convert_color_marker("$0");
+            spans.push(Span::styled(seg_text, Style::default().fg(empty_color)));
+        }
+    }
+    spans.push(Span::styled("]", Style::default().fg(bracket_color)));
+    spans.push(Span::raw(format!(" {}/{}", current, max)));
+    spans
+}
+
+/// Renders the Mana gauge.
+fn render_mana_gauge(current: i32, max: i32) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let label_color = convert_color_marker("$x171");
+    spans.push(Span::styled("MN: ", Style::default().fg(label_color)));
+    let bracket_color = convert_color_marker("$x238");
+    spans.push(Span::styled("[", Style::default().fg(bracket_color)));
+
+    let fill_codes = ["$x027", "$x063", "$x099", "$x135", "$x171"];
+    let total_segments = fill_codes.len();
+    let percentage = if max > 0 { current as f64 / max as f64 } else { 0.0 };
+    let filled_count = (percentage * total_segments as f64).floor() as usize;
+
+    for i in 0..total_segments {
+        if i < filled_count {
+            spans.push(Span::styled("**", Style::default().fg(convert_color_marker(fill_codes[i]))));
+        } else {
+            spans.push(Span::styled("  ", Style::default().fg(convert_color_marker("$x238"))));
+        }
+    }
+    spans.push(Span::styled("]", Style::default().fg(bracket_color)));
+    spans.push(Span::raw(format!(" {}/{}", current, max)));
+    spans
+}
+
+/// Renders the Movement gauge.
+fn render_mv_gauge(current: i32, max: i32) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    
+    let label_color = convert_color_marker("$x228");
+    spans.push(Span::styled("MV: ", Style::default().fg(label_color)));
+
+    let bracket_color = convert_color_marker("$x238");
+    spans.push(Span::styled("[", Style::default().fg(bracket_color)));
+
+    let fill_codes = ["$x172", "$x178", "$x220", "$x221", "$x228"];
+    let total_segments = fill_codes.len();
+    let percentage = if max > 0 { current as f64 / max as f64 } else { 0.0 };
+    let filled_count = (percentage * total_segments as f64).floor() as usize;
+
+    for i in 0..total_segments {
+        if i < filled_count {
+            spans.push(Span::styled("**", Style::default().fg(convert_color_marker(fill_codes[i]))));
+        } else {
+            spans.push(Span::styled("  ", Style::default().fg(convert_color_marker("$x238"))));
+        }
+    }
+
+    spans.push(Span::styled("]", Style::default().fg(bracket_color)));
+    spans.push(Span::raw(format!(" {}/{}", current, max)));
+
+    spans
+}
+
+/// Renders the enemy gauge using enemy hp and maximum hp.
+fn render_enemy_gauge(current: i32, max: i32) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    spans.push(Span::styled("EN: ", Style::default().fg(Color::Red)));
+    spans.push(Span::styled("[", Style::default().fg(Color::Gray)));
+    let total_segments = 10;
+    let percentage = if max > 0 { current as f64 / max as f64 } else { 0.0 };
+    let filled_count = (percentage * total_segments as f64).floor() as usize;
+    for _ in 0..filled_count {
+        spans.push(Span::styled("##", Style::default().fg(Color::Red)));
+    }
+    for _ in filled_count..total_segments {
+        spans.push(Span::styled("--", Style::default().fg(Color::DarkGray)));
+    }
+    spans.push(Span::styled("]", Style::default().fg(Color::Gray)));
+    spans.push(Span::raw(format!(" {:.0}%", percentage * 100.0)));
+    spans
 }
