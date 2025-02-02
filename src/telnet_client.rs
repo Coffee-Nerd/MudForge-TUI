@@ -1,5 +1,4 @@
-// telnet_client.rs
-
+// src/telnet.rs - Telnet client implementation for MudForge TUI
 use crate::ansi_color::{parse_ansi_codes, COLOR_MAP, strip_mxp_tags};
 use crate::gmcp_store::GMCPStore;
 use log::{debug, error, info};
