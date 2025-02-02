@@ -214,8 +214,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     )]);
                     break;
                 }
-                // Update gauge data from Char.Vitals GMCP message.
-                TelnetMessage::CharVitals(hp, maxhp, mana, maxmana, moves, maxmoves) => {
+                TelnetMessage::CharVitals(hp, mana, movement) => {
+                    let line = Span::styled(
+                        format!("GMCP: Char.Vitals => HP: {}, Mana: {}, Movement: {}", hp, mana, movement),
+                        Style::default().fg(Color::Cyan),
+                    );
+                    st.add_mud_output(vec![line]);
+                    st.gmcp_vitals = Some(Vitals { hp, mana, movement });
+                }
                     let line = Span::styled(
                         format!(
                             "GMCP: Char.Vitals => HP {}/{}, Mana {}/{}, Moves {}/{}",
