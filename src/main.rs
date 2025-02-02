@@ -433,14 +433,22 @@ fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
     f.render_widget(chat_par, chat_rect);
 
     // Build a single horizontal line for gauges.
+    let mut gauge_spans: Vec<Span> = Vec::new();
     if let (Some(vitals), Some(maxstats)) = (&st.gmcp_vitals, &st.gmcp_maxstats) {
-        gauge_lines.push(Line::from(render_gauge("HP", vitals.hp, maxstats.maxhp)));
-        gauge_lines.push(Line::from(render_gauge("MN", vitals.mana, maxstats.maxmana)));
-        gauge_lines.push(Line::from(render_gauge("MV", vitals.movement, maxstats.maxmove)));
-    } else {
-        gauge_lines.push(Line::from(Span::raw("No GMCP gauge data")));
+        gauge_spans.extend(render_hp_gauge(vitals.hp, maxstats.maxhp));
+        gauge_spans.push(Span::raw("  "));
+        gauge_spans.extend(render_mana_gauge(vitals.mana, maxstats.maxmana));
+        gauge_spans.push(Span::raw("  "));
+        gauge_spans.extend(render_mv_gauge(vitals.movement, maxstats.maxmove));
     }
-    let gauge_par = Paragraph::new(gauge_lines)
+    // If group info is available and there is an enemy, use its info.
+    if let Some(group) = &st.group_info {
+        if let Some(enemy) = group.enemies.first() {
+            gauge_spans.push(Span::raw("  "));
+            gauge_spans.extend(render_enemy_gauge(enemy.info.hp, enemy.info.mhp));
+        }
+    }
+    let gauge_par = Paragraph::new(vec![Line::from(gauge_spans)])
         .block(Block::default().borders(Borders::ALL).title(" Gauges "));
     f.render_widget(gauge_par, gauge_rect);
 
@@ -450,8 +458,7 @@ fn ui_draw<B: Backend>(f: &mut ratatui::Frame<B>, st: &AppState) {
         .wrap(Wrap { trim: false });
     f.render_widget(inp_par, input_rect);
 
-    let cursor_x =
-        input_rect.x + (st.input.len() as u16).min(input_rect.width.saturating_sub(2)) + 1;
+    let cursor_x = input_rect.x + (st.input.len() as u16).min(input_rect.width.saturating_sub(2)) + 1;
     let cursor_y = input_rect.y + 1;
     if cursor_x < f.size().width && cursor_y < f.size().height {
         f.set_cursor(cursor_x, cursor_y);
