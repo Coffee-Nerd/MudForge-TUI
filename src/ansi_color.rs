@@ -146,7 +146,7 @@ pub fn parse_ansi_codes(buffer: Vec<u8>) -> Vec<Vec<Span<'static>>> {
                 if ch == 'm' {
                     // Finished reading an SGR sequence.
                     let code = code_str.clone();
-                    log::debug!("Parsed SGR code: {}", code);
+                    // log::debug("Parsed SGR code: {}", code);
                     if code == "0" {
                         current_fg = Color::White;
                         current_bg = None;
@@ -155,7 +155,7 @@ pub fn parse_ansi_codes(buffer: Vec<u8>) -> Vec<Vec<Span<'static>>> {
                         if let Some(&color) = COLOR_MAP.get(code.as_str()) {
                             current_fg = color;
                         } else {
-                            log::debug!("Foreground key not found: {}", code);
+                            // log::debug("Foreground key not found: {}", code);
                         }
                     } else if code.starts_with("48;5;") {
                         // 256-color background.
@@ -163,7 +163,7 @@ pub fn parse_ansi_codes(buffer: Vec<u8>) -> Vec<Vec<Span<'static>>> {
                         if let Some(&color) = COLOR_MAP.get(fg_key.as_str()) {
                             current_bg = Some(color);
                         } else {
-                            log::debug!("Background key not found: {}", code);
+                            // log::debug("Background key not found: {}", code);
                         }
                     } else if ["40","41","42","43","44","45","46","47"].contains(&code.as_str()) {
                         // Standard background codes.
@@ -191,7 +191,7 @@ pub fn parse_ansi_codes(buffer: Vec<u8>) -> Vec<Vec<Span<'static>>> {
                         if let Some(&color) = COLOR_MAP.get(key.as_str()) {
                             current_fg = color;
                         } else {
-                            log::debug!("SGR code not found in COLOR_MAP: {}", key);
+                            // log::debug("SGR code not found in COLOR_MAP: {}", key);
                         }
                     }
                     state = State::Normal;
