@@ -14,3 +14,4 @@ libmudtelnet = "2.0.1"            # Telnet handling
 lazy_static = "1.4.0"             # Static variable initialization
 log = "0.4"                        # Logging
 env_logger = "0.11"                # Logging implementation
+simplelog = "0.12.2"
