@@ -189,7 +189,7 @@ impl TelnetClient {
         // Send GMCP negotiation (IAC WILL TELOPT_GMCP)
         self.enable_gmcp().await?;
 
-        // Send additional GMCP requests to prompt data from the server.
+        // Send additional GMCP requests.
         self.fetch_all().await?;
 
         let parser_clone = Arc::clone(&self.parser);
@@ -210,7 +210,7 @@ impl TelnetClient {
         let mut w = self.write_half.lock().await;
         if let Some(ref mut write_half) = *w {
             write_half.write_all(&gmcp_enable).await.map_err(|e| format!("Failed to enable GMCP: {}", e))?;
-            debug!("Sent GMCP negotiation: IAC WILL TELOPT_GMCP");
+            // debug("Sent GMCP negotiation: IAC WILL TELOPT_GMCP");
             Ok(())
         } else {
             Err("No write half available".to_string())
@@ -226,7 +226,7 @@ impl TelnetClient {
         let mut w = self.write_half.lock().await;
         if let Some(ref mut write_half) = *w {
             write_half.write_all(&packet).await.map_err(|e| e.to_string())?;
-            debug!("Sent GMCP subnegotiation: {}", msg);
+            // debug("Sent GMCP subnegotiation: {}", msg);
             Ok(())
         } else {
             Err("No write half available".into())
@@ -246,10 +246,10 @@ impl TelnetClient {
         Ok(())
     }
 
-    /// Sends a normal text command (e.g. user input) to the server.
+    /// Sends a normal text command to the server.
     pub async fn send_command(&self, cmd: &str) -> Result<(), String> {
         let cmd = format!("{}\r\n", cmd.trim());
-        debug!("send_command(): sending {:?}", cmd.escape_default());
+        // debug("send_command(): sending {:?}", cmd.escape_default());
         let mut w = self.write_half.lock().await;
         let some_wh = match w.as_mut() {
             Some(wh) => wh,
@@ -261,7 +261,7 @@ impl TelnetClient {
         let result = timeout(Duration::from_secs(5), some_wh.write_all(cmd.as_bytes())).await;
         match result {
             Ok(Ok(())) => {
-                debug!("send_command(): success writing {} bytes", cmd.len());
+                // debug("send_command(): success writing {} bytes", cmd.len());
                 Ok(())
             }
             Ok(Err(e)) => {
@@ -290,30 +290,27 @@ async fn run_read_loop(
     loop {
         match r.read(&mut buf).await {
             Ok(0) => {
-                debug!("Server closed connection");
+                // debug("Server closed connection");
                 let _ = tx.send(TelnetMessage::Disconnect).await;
                 break;
             }
             Ok(n) => {
-                debug!("Read {} bytes from server", n);
+                // debug("Read {} bytes from server", n);
                 let raw_bytes = buf[..n].to_vec();
-                debug!("Raw bytes: {:?}", raw_bytes);
+                // debug("Raw bytes: {:?}", raw_bytes);
 
-                // First, try to get events from the parser.
                 let mut events = {
                     let mut p = parser_arc.lock().await;
                     p.receive(&raw_bytes)
                 };
-                debug!("Parsed events from parser: {:?}", events);
+                // debug("Parsed events from parser: {:?}", events);
 
-                // Fallback: if no events were returned, manually extract GMCP subnegotiations.
                 let fallback_events = extract_gmcp_subnegotiations(&raw_bytes);
                 if !fallback_events.is_empty() {
-                    debug!("Fallback extracted {} GMCP subnegotiation event(s)", fallback_events.len());
+                    // debug("Fallback extracted {} GMCP subnegotiation event(s)", fallback_events.len());
                     events.extend(fallback_events);
                 }
 
-                // Process all events.
                 for ev in events {
                     handle_event(ev, &tx, &write_half_arc, gmcp_store.clone()).await;
                 }
@@ -327,8 +324,7 @@ async fn run_read_loop(
     }
 }
 
-/// Manually scan raw bytes for GMCP subnegotiation sequences.
-/// Returns a vector of TelnetEvents::Subnegotiation events.
+/// Manually extracts GMCP subnegotiation sequences.
 fn extract_gmcp_subnegotiations(raw: &[u8]) -> Vec<TelnetEvents> {
     let mut events = Vec::new();
     let mut i = 0;
@@ -336,10 +332,8 @@ fn extract_gmcp_subnegotiations(raw: &[u8]) -> Vec<TelnetEvents> {
         if raw[i] == IAC {
             if i + 1 < raw.len() && raw[i + 1] == SB {
                 if i + 2 < raw.len() && raw[i + 2] == TELOPT_GMCP {
-                    // Found start of GMCP subnegotiation.
                     let start = i + 3;
                     let mut end = start;
-                    // Look for the terminating IAC SE sequence.
                     while end + 1 < raw.len() {
                         if raw[end] == IAC && raw[end + 1] == SE {
                             break;
@@ -348,8 +342,7 @@ fn extract_gmcp_subnegotiations(raw: &[u8]) -> Vec<TelnetEvents> {
                     }
                     if end + 1 < raw.len() {
                         let buffer = raw[start..end].to_vec();
-                        debug!("Manually extracted GMCP subnegotiation buffer: {:?}", buffer);
-                        // Create a fake TelnetSubnegotiation event.
+                        // debug("Manually extracted GMCP subnegotiation buffer: {:?}", buffer);
                         events.push(TelnetEvents::Subnegotiation(TelnetSubnegotiation {
                             option: TELOPT_GMCP,
                             buffer: buffer.into(),
@@ -365,7 +358,7 @@ fn extract_gmcp_subnegotiations(raw: &[u8]) -> Vec<TelnetEvents> {
     events
 }
 
-/// Parses a GMCP message into a package (dot‑separated string) and a JSON value.
+/// Parses a GMCP message into a package and JSON value.
 fn parse_gmcp(data: &str) -> Option<(String, Value)> {
     let trimmed = data.trim();
     if let Ok(val) = serde_json::from_str::<Value>(trimmed) {
@@ -376,7 +369,6 @@ fn parse_gmcp(data: &str) -> Option<(String, Value)> {
             }
         }
     }
-    // Fallback: split on the first whitespace.
     let mut parts = trimmed.splitn(2, char::is_whitespace);
     if let Some(package) = parts.next() {
         if let Some(json_part) = parts.next() {
@@ -475,7 +467,7 @@ pub fn parse_gmcp_message(msg: &str) -> Vec<Span<'static>> {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Handle events received from the Telnet parser (or from our manual extraction).
+// Handle events from the Telnet parser.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 async fn handle_event(
     event: TelnetEvents,
@@ -485,16 +477,14 @@ async fn handle_event(
 ) {
     match event {
         TelnetEvents::DataReceive(data) => {
-            debug!("DataReceive event: {} bytes", data.len());
+            // debug("DataReceive event: {} bytes", data.len());
             let data_vec = data.to_vec();
             let lines = parse_ansi_codes(data_vec);
             for line in lines {
                 let full_text: String = line.iter().map(|span| span.content.clone()).collect();
-                debug!("Received line: {}", full_text);
-
-                // If the line contains "comm.channel", try to parse it as GMCP.
+                // debug("Received line: {}", full_text);
                 if full_text.to_lowercase().contains("comm.channel") {
-                    debug!("GMCP candidate detected in normal text: {}", full_text);
+                    // debug("GMCP candidate detected in normal text: {}", full_text);
                     if let Some(json_start) = full_text.find('{') {
                         let maybe_json = &full_text[json_start..];
                         if let Ok(cc) = serde_json::from_str::<CommChannel>(maybe_json) {
@@ -513,25 +503,25 @@ async fn handle_event(
             }
         }
         TelnetEvents::Subnegotiation(subneg) => {
-            debug!("Received Subnegotiation: option={}, buffer={:?}", subneg.option, subneg.buffer);
+            // debug("Received Subnegotiation: option={}, buffer={:?}", subneg.option, subneg.buffer);
             if subneg.option == TELOPT_GMCP {
                 let gmcp_str = String::from_utf8_lossy(&subneg.buffer).to_string();
-                debug!("Received GMCP subnegotiation: {}", gmcp_str);
+                // debug("Received GMCP subnegotiation: {}", gmcp_str);
                 if let Some((package, value)) = parse_gmcp(&gmcp_str) {
                     {
                         let mut store = gmcp_store.lock().await;
                         store.update(&package, value.clone());
                     }
-                    debug!("Updated GMCP store with package: {}", package);
+                    // debug("Updated GMCP store with package: {}", package);
                     if let Some(msg) = parse_known_gmcp_modules(&gmcp_str) {
                         let _ = tx.send(msg).await;
                         return;
                     }
                 } else {
-                    debug!("Unable to parse GMCP message: {}", gmcp_str);
+                    // debug("Unable to parse GMCP message: {}", gmcp_str);
                 }
             } else {
-                debug!("Received non-GMCP subnegotiation: option={}, buffer={:?}", subneg.option, subneg.buffer);
+                // debug("Received non-GMCP subnegotiation: option={}, buffer={:?}", subneg.option, subneg.buffer);
             }
         }
         TelnetEvents::DataSend(nego_bytes) => {
@@ -544,10 +534,10 @@ async fn handle_event(
             }
         }
         TelnetEvents::IAC(iac) => {
-            debug!("Received IAC command: {:?}", iac);
+            // debug("Received IAC command: {:?}", iac);
         }
         _ => {
-            debug!("Unhandled Telnet event: {:?}", event);
+            // debug("Unhandled Telnet event: {:?}", event);
         }
     }
 }
