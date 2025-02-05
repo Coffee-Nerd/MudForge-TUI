@@ -32,14 +32,17 @@ A terminal-based MUD (Multi-User Dungeon) client built in Rust. This project fea
     - [ ] **Sound Integration** – Ability to trigger sound effects for events.
     - Additional MUD client features such as scripting, macros, and more.
 
-## Roadmap
+## Roadmap (in no particular order)
 
 - [x] Telnet connection and GMCP parsing  
-- [x] ANSI and xterm 256-color support for both MUD output and GMCP inline markers  
+- [x] ANSI and xterm 256-color support for both MUD output and GMCP inline markers
+- [x] ASCII Map Window - Displays ASCII Map in the window  
 - [ ] **Group Gauges** – Display detailed group member and enemy statistics  
 - [ ] **Resizable Windows** – Allow dynamic resizing of the chat and group display areas  
 - [ ] **Full MXP Support** – Implement parsing and rendering of MXP tags  
-- [ ] **Sound Integration** – Add sound notifications and effects  
+- [ ] **Sound Integration** – Add sound notifications and effects
+- [ ] **Multi-Protocol Support** - Support for MSDP, GMCP, etc
+- [ ] **Customization Menu** - BTOP-like customization menu
 - [ ] Additional features as recommended by the community
 
 ## Installation
