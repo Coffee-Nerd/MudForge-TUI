@@ -43,6 +43,7 @@ A terminal-based MUD (Multi-User Dungeon) client built in Rust. This project fea
 - [ ] **Sound Integration** – Add sound notifications and effects
 - [ ] **Multi-Protocol Support** - Support for MSDP, GMCP, etc
 - [ ] **Customization Menu** - BTOP-like customization menu
+- [ ] Custom connection to your MUD of choice by entering it into the INPUT bar, or by saving your settings and loading them every time.
 - [ ] Additional features as recommended by the community
 
 ## Installation
